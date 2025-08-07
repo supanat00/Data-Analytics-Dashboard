@@ -1,103 +1,365 @@
-import Image from "next/image";
+// src/app/page.js
 
-export default function Home() {
+"use client";
+
+import { useState, useEffect } from "react";
+import axios from "axios";
+import { Line } from "react-chartjs-2";
+import {
+  Chart as ChartJS,
+  CategoryScale,
+  LinearScale,
+  PointElement,
+  LineElement,
+  Title,
+  Tooltip,
+  Legend,
+  Filler,
+} from "chart.js";
+
+ChartJS.register(
+  CategoryScale,
+  LinearScale,
+  PointElement,
+  LineElement,
+  Title,
+  Tooltip,
+  Legend,
+  Filler
+);
+
+const categories = [
+  { key: "performance", label: "Performance" },
+  { key: "transactional", label: "Transactional" },
+  { key: "picos", label: "PICOS" },
+];
+
+const placeholderData = {
+  performance: {
+    summary: {
+      "GMV (฿)": "-",
+      "รายได้รวม (พร้อมเงินสนับสนุนสินค้าจากแพลตฟอร์ม)": "-",
+      สินค้าที่ขายได้: "-",
+      ลูกค้า: "-",
+      คำสั่งซื้อ: "-",
+      อัตราคอนเวอร์ชั่น: "-",
+    },
+    daily: Array(7)
+      .fill(null)
+      .map((_, i) => ({
+        สรุปข้อมูล: `Day ${i + 1}`,
+        "GMV (฿)": "-",
+        "รายได้รวม (พร้อมเงินสนับสนุนสินค้าจากแพลตฟอร์ม)": "-",
+        สินค้าที่ขายได้: "-",
+        ลูกค้า: "-",
+        คำสั่งซื้อ: "-",
+        อัตราคอนเวอร์ชั่น: "-",
+      })),
+  },
+  transactional: {
+    summary: {
+      "All Orders": "-",
+      "Completed Orders": "-",
+      "Settlement Report": "-",
+    },
+    daily: Array(7)
+      .fill(null)
+      .map((_, i) => ({
+        วันที่: `Day ${i + 1}`,
+        "All Orders": "-",
+        "Completed Orders": "-",
+        "Settlement Report": "-",
+      })),
+  },
+  picos: {
+    summary: {
+      "Product Reviews": "-",
+      Stock: "-",
+      "Assortment & Pricing": "-",
+    },
+    daily: Array(7)
+      .fill(null)
+      .map((_, i) => ({
+        วันที่: `Day ${i + 1}`,
+        "Product Reviews": "-",
+        Stock: "-",
+        "Assortment & Pricing": "-",
+      })),
+  },
+};
+
+function KpiCard({ label, value, color }) {
+  const colorMap = {
+    blue: "text-blue-600",
+    green: "text-green-600",
+    purple: "text-purple-600",
+    orange: "text-orange-600",
+    red: "text-red-600",
+    teal: "text-teal-600",
+    gray: "text-gray-600",
+  };
   return (
-    <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
-      <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="list-inside list-decimal text-sm/6 text-center sm:text-left font-[family-name:var(--font-geist-mono)]">
-          <li className="mb-2 tracking-[-.01em]">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] px-1 py-0.5 rounded font-[family-name:var(--font-geist-mono)] font-semibold">
-              src/app/page.js
-            </code>
-            .
-          </li>
-          <li className="tracking-[-.01em]">
-            Save and see your changes instantly.
-          </li>
-        </ol>
-
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:w-auto"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 w-full sm:w-auto md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
-        </div>
-      </main>
-      <footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
+    <div className="bg-white p-3 rounded shadow text-center">
+      <div className="text-xs text-gray-500">{label}</div>
+      <div className={`text-lg font-bold ${colorMap[color] || colorMap.gray}`}>
+        {value}
+      </div>
     </div>
+  );
+}
+
+export default function DashboardPage() {
+  const [activeTab, setActiveTab] = useState("performance");
+  const [data, setData] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    let ignore = false;
+    const fetchData = async () => {
+      setLoading(true);
+      try {
+        const response = await axios.get("/api/getData");
+        if (
+          response.data &&
+          typeof response.data.summary === "object" &&
+          Array.isArray(response.data.daily)
+        ) {
+          const filteredDailyData = response.data.daily.filter(
+            (row) =>
+              row["สรุปข้อมูล"] && row["สรุปข้อมูล"].toLowerCase() !== "วันที่"
+          );
+          if (!ignore) {
+            setData({
+              summary: response.data.summary,
+              daily: filteredDailyData,
+            });
+            setError(null);
+          }
+        } else {
+          throw new Error("โครงสร้างข้อมูลที่ได้รับจาก API ไม่ถูกต้อง");
+        }
+      } catch (err) {
+        if (!ignore) {
+          setError(
+            "ไม่สามารถดึงข้อมูลได้: " +
+              (err.response?.data?.error || err.message)
+          );
+        }
+      } finally {
+        if (!ignore) setLoading(false);
+      }
+    };
+    fetchData();
+    return () => {
+      ignore = true;
+    };
+  }, []);
+
+  // Map KPI fields and colors for each tab
+  const kpiConfig = {
+    performance: [
+      { label: "GMV (฿)", key: "GMV (฿)", color: "blue" },
+      {
+        label: "รายได้รวม (฿)",
+        key: "รายได้รวม (พร้อมเงินสนับสนุนสินค้าจากแพลตฟอร์ม)",
+        color: "green",
+      },
+      { label: "สินค้าที่ขายได้", key: "สินค้าที่ขายได้", color: "purple" },
+      { label: "ลูกค้า", key: "ลูกค้า", color: "orange" },
+      { label: "คำสั่งซื้อ", key: "คำสั่งซื้อ", color: "red" },
+      { label: "อัตราคอนเวอร์ชั่น", key: "อัตราคอนเวอร์ชั่น", color: "teal" },
+    ],
+    transactional: [
+      { label: "All Orders", key: "All Orders", color: "blue" },
+      { label: "Completed Orders", key: "Completed Orders", color: "green" },
+      { label: "Settlement Report", key: "Settlement Report", color: "purple" },
+    ],
+    picos: [
+      { label: "Product Reviews", key: "Product Reviews", color: "blue" },
+      { label: "Stock", key: "Stock", color: "green" },
+      {
+        label: "Assortment & Pricing",
+        key: "Assortment & Pricing",
+        color: "purple",
+      },
+    ],
+  };
+
+  // เลือกข้อมูลที่จะแสดงตาม tab
+  let displayData;
+  if (activeTab === "performance" && data) {
+    displayData = {
+      summary: {
+        "GMV (฿)": data.summary["GMV (฿)"] ?? "-",
+        "รายได้รวม (พร้อมเงินสนับสนุนสินค้าจากแพลตฟอร์ม)":
+          data.summary["รายได้รวม (พร้อมเงินสนับสนุนสินค้าจากแพลตฟอร์ม)"] ??
+          "-",
+        สินค้าที่ขายได้: data.summary["สินค้าที่ขายได้"] ?? "-",
+        ลูกค้า: data.summary["ลูกค้า"] ?? "-",
+        คำสั่งซื้อ: data.summary["คำสั่งซื้อ"] ?? "-",
+        อัตราคอนเวอร์ชั่น: data.summary["อัตราคอนเวอร์ชั่น"] ?? "-",
+      },
+      daily:
+        Array.isArray(data.daily) && data.daily.length > 0
+          ? data.daily
+          : placeholderData.performance.daily,
+    };
+  } else if (activeTab === "transactional") {
+    displayData = placeholderData.transactional;
+  } else if (activeTab === "picos") {
+    displayData = placeholderData.picos;
+  } else {
+    displayData = placeholderData.performance;
+  }
+
+  if (loading)
+    return (
+      <main className="flex items-center justify-center min-h-screen">
+        🌀 กำลังโหลด...
+      </main>
+    );
+  if (error)
+    return (
+      <main className="flex items-center justify-center min-h-screen">
+        ❌ {error}
+      </main>
+    );
+  if (!displayData || !displayData.summary || !displayData.daily) {
+    return (
+      <main className="flex items-center justify-center min-h-screen">
+        🤔 ไม่พบข้อมูล
+      </main>
+    );
+  }
+
+  // เตรียมข้อมูลกราฟ (เฉพาะ performance)
+  let chartArea = null;
+  if (
+    activeTab === "performance" &&
+    displayData &&
+    displayData.daily &&
+    displayData.daily.length > 0
+  ) {
+    const chartLabels = displayData.daily.map((d) => d["สรุปข้อมูล"] || `Day`);
+    const chartData = {
+      labels: chartLabels,
+      datasets: [
+        {
+          label: "GMV (฿)",
+          data: displayData.daily.map((d) => {
+            const val = d["GMV (฿)"];
+            const num =
+              typeof val === "string"
+                ? parseFloat(val.replace(/,/g, ""))
+                : Number(val);
+            return isNaN(num) ? 0 : num;
+          }),
+          borderColor: "rgb(54, 162, 235)",
+          backgroundColor: "rgba(54, 162, 235, 0.2)",
+          fill: true,
+          tension: 0.3,
+        },
+        {
+          label: "รายได้รวม (฿)",
+          data: displayData.daily.map((d) => {
+            const val = d["รายได้รวม (พร้อมเงินสนับสนุนสินค้าจากแพลตฟอร์ม)"];
+            const num =
+              typeof val === "string"
+                ? parseFloat(val.replace(/,/g, ""))
+                : Number(val);
+            return isNaN(num) ? 0 : num;
+          }),
+          borderColor: "rgb(75, 192, 192)",
+          backgroundColor: "rgba(75, 192, 192, 0.2)",
+          fill: true,
+          tension: 0.3,
+        },
+      ],
+    };
+    const chartOptions = {
+      responsive: true,
+      plugins: {
+        legend: { position: "top" },
+        title: {
+          display: true,
+          text: "ภาพรวมข้อมูล 7 วันล่าสุด",
+          font: { size: 16, weight: "bold" },
+          color: "#333",
+        },
+      },
+      scales: { y: { beginAtZero: true } },
+    };
+    chartArea = <Line options={chartOptions} data={chartData} />;
+  } else {
+    chartArea = (
+      <span className="text-gray-400 text-sm">[Chart Placeholder]</span>
+    );
+  }
+
+  return (
+    <main className="max-w-md mx-auto p-2 bg-gray-50 min-h-screen font-sans">
+      <h1 className="text-xl font-bold mb-4 text-gray-800 text-center">
+        Data Analytics Dashboard
+      </h1>
+
+      {/* Tabs */}
+      <div className="flex mb-4 border-b">
+        {categories.map((cat) => (
+          <button
+            key={cat.key}
+            className={`flex-1 py-2 text-sm ${
+              activeTab === cat.key
+                ? "border-b-2 border-blue-500 font-bold bg-white"
+                : "text-gray-500 bg-gray-100"
+            }`}
+            onClick={() => setActiveTab(cat.key)}
+          >
+            {cat.label}
+          </button>
+        ))}
+      </div>
+
+      {/* KPI Cards */}
+      <div className={`grid grid-cols-2 gap-2 mb-4`}>
+        {kpiConfig[activeTab].map((kpi) => (
+          <KpiCard
+            key={kpi.key}
+            label={kpi.label}
+            value={displayData.summary[kpi.key]}
+            color={kpi.color}
+          />
+        ))}
+      </div>
+
+      {/* Chart Area (Line Chart for performance) */}
+      <div className="bg-white p-2 rounded shadow mb-4 min-h-[120px] flex items-center justify-center">
+        {chartArea}
+      </div>
+
+      {/* Daily Data Accordion/List */}
+      <div>
+        {displayData.daily.map((row, idx) => (
+          <details key={idx} className="mb-2 bg-white rounded shadow">
+            <summary className="px-4 py-2 cursor-pointer font-medium">
+              {row["สรุปข้อมูล"] || row["วันที่"] || `Day ${idx + 1}`}
+            </summary>
+            <div className="px-4 py-2 text-sm text-gray-700">
+              {Object.entries(row).map(([k, v]) =>
+                k !== "สรุปข้อมูล" && k !== "วันที่" ? (
+                  <div
+                    key={k}
+                    className="flex justify-between border-b last:border-b-0 py-1"
+                  >
+                    <span className="text-gray-500">{k}</span>
+                    <span>{v}</span>
+                  </div>
+                ) : null
+              )}
+            </div>
+          </details>
+        ))}
+      </div>
+    </main>
   );
 }
